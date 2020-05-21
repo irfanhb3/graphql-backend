@@ -1,7 +1,9 @@
 const graphql = require('graphql');
 const _ = require('lodash');
+const TvSeries = require('../models/tvseries');
+const Director = require('../models/director');
 
-const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLSchema, GraphQLList } = graphql;
+const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLSchema, GraphQLList, GraphQLInt } = graphql;
 
 var tvSeries = [
 	{name: 'Sacred Games', genre: 'Crime Thriller', id: '1', directorId: '1'},
@@ -60,10 +62,38 @@ const RootQuery = new GraphQLObjectType({
 			resolve(parent, args) {
 				return _.find(directors, { id: args.id });
 			}
+		},
+		directors: {
+			type: new GraphQLList(DirectorType),
+			resolve(parent, args) {
+				return directors
+			}
+		}
+	}
+});
+
+const Mutation = new GraphQLObjectType({
+	name: 'MutationType',
+	fields: {
+		addDirector: {
+			type: DirectorType,
+			args: {
+				name: {type: GraphQLString},
+				age: {type: GraphQLInt}
+			},
+			resolve(parent, args) {
+				let director = new Director({
+					name: args.name,
+					age: args.age
+				});
+				director.save();
+				return director
+			}
 		}
 	}
 });
 
 module.exports = new GraphQLSchema({
-	query: RootQuery
+	query: RootQuery,
+	mutation: Mutation
 });
